@@ -5,61 +5,34 @@ $successMessage = $errorMessage = ''; // Initialisation des messages
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send'])) {
     try {
-        // Votre code existant pour la récupération des données du formulaire
         $from_country = htmlspecialchars($_POST['from_country']);
         $to_country = htmlspecialchars($_POST['to_country']);
         $network = htmlspecialchars($_POST['network']);
         $bitcoin_address = htmlspecialchars($_POST['bitcoin_address']);
         $amount_xof = htmlspecialchars($_POST['amount_xof']);
         $amount_sat = htmlspecialchars($_POST['amount_sat']);
+        
 
-        // Ajoutez la logique pour créer une facture LNbits en fonction du montant de satoshis
+        // Préparez votre requête SQL d'insertion avec le statut
+        $sql = "INSERT INTO sendfiat (from_country, to_country, network, bitcoin_address, amount_xof, amount_sat) VALUES (?, ?, ?, ?, ?, ?)";
 
-        $lnbits_url = "https://legend.lnbits.com/api/v1/payments";
-        $lnbits_api_key = "2b11ca52df474d5dae31c0c977e2a7cf";
+        // Préparez les valeurs à insérer
+        $stmt = $mysqli->prepare($sql);
+        $stmt->bind_param('ssssss', $from_country, $to_country, $network, $bitcoin_address, $amount_xof, $amount_sat);
+        $stmt->execute();
 
-        $invoice_amount = $amount_sat; // Utilisez le montant de satoshis calculé précédemment
-        $invoice_description = "flash";
+        $successMessage = "Dossier ajouté avec succès.";
 
-        $data = array(
-            'out' => false,
-            'amount' => intval($invoice_amount),
-            'memo' => $invoice_description
-        );
-
-        $payload = json_encode($data);
-
-        $ch = curl_init($lnbits_url);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            'Content-Type: application/json',
-            'X-Api-Key: ' . $lnbits_api_key
-        ));
-
-        $result = curl_exec($ch);
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        // Traitez le résultat de la requête
-        if ($httpcode === 201) {
-            $lnbits_invoice = json_decode($result, true);
-            // Redirigez l'utilisateur vers la page de paiement LNbits avec la nouvelle facture
-            $payment_request = $lnbits_invoice['payment_request']; // ou 'payment_hash' selon la réponse
-            header("Location: pay.php?payment_request=" . $payment_request);
-            exit();
-        } else {
-            // Gérez les erreurs de requête
-            $errorMessage = "Erreur lors de la création de la facture LNbits.";
-        }
-
+        // Redirection vers une autre page après l'insertion
+        header("Location: pay.php");
+        exit();
     } catch (mysqli_sql_exception  $e) {
         // Gérez les erreurs de base de données ici
         $errorMessage = "Erreur de base de données : " . $e->getMessage();
     }
 }
 ?>
+
 
 
 
