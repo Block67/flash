@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send'])) {
         $lnbits_api_key = "2b11ca52df474d5dae31c0c977e2a7cf";
 
         $invoice_amount = $amount_sat; // Utilisez le montant de satoshis calculé précédemment
-        $invoice_description = "flash";
+        $invoice_description = "send_money_with_flash";
 
         $data = array(
             'out' => false,
