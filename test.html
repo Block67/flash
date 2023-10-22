@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculateur de Satoshi</title>
+</head>
+
+<body>
+    <label for="xofAmount">Montant en XOF :</label>
+    <input type="number" id="xofAmount" name="xofAmount" oninput="calculateSatoshi()">
+    <br>
+    <label for="satoshiResult">Équivalent en Satoshi :</label>
+    <textarea id="satoshiResult" rows="4" cols="50" readonly></textarea>
+
+    <script>
+        function calculateSatoshi() {
+            var xhr = new XMLHttpRequest();
+            var url = "https://api.yadio.io/exrates/XOF";
+            xhr.open("GET", url, true);
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    var data = JSON.parse(xhr.responseText);
+                    var xof_to_btc_rate = data["BTC"];
+                    var amount_in_xof = parseFloat(document.getElementById("xofAmount").value);
+                    var equivalent_in_btc = amount_in_xof / xof_to_btc_rate;
+                    var equivalent_in_satoshi = equivalent_in_btc * 100000000;
+                    document.getElementById("satoshiResult").value = equivalent_in_satoshi;
+                } else {
+                    console.log("La requête a échoué.");
+                }
+            };
+            xhr.send();
+        }
+    </script>
+</body>
+
+</html>
