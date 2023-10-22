@@ -21,17 +21,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send'])) {
         $stmt->bind_param('ssssss', $from_country, $to_country, $network, $bitcoin_address, $amount_xof, $amount_sat);
         $stmt->execute();
 
+        // Ajoutez la logique de la requête cURL ici
+
+        $lnbits_url = "https://legend.lnbits.com/api/v1/payments";
+        $lnbits_api_key = "2b11ca52df474d5dae31c0c977e2a7cf";
+
+        $invoice_amount = $amount_sat; // Utilisez le montant de satoshis calculé précédemment
+        $invoice_description = "flash";
+
+        $data = array(
+            'out' => false,
+            'amount' => intval($invoice_amount),
+            'memo' => $invoice_description
+        );
+
+        $payload = json_encode($data);
+
+        $ch = curl_init($lnbits_url);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Content-Type: application/json',
+            'X-Api-Key: ' . $lnbits_api_key
+        ));
+
+        $result = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        // Traitez le résultat de la requête
+        if ($httpcode === 201) {
+            $lnbits_invoice = json_decode($result, true);
+            // Redirigez l'utilisateur vers la page de paiement LNbits avec la nouvelle facture
+            $payment_request = $lnbits_invoice['payment_request']; // ou 'payment_hash' selon la réponse
+            header("Location: pay.php?payment_request=" . $payment_request);
+            exit();
+        } else {
+            // Gérez les erreurs de requête
+            $errorMessage = "Erreur lors de la création de la facture LNbits.";
+        }
+
         $successMessage = "Dossier ajouté avec succès.";
 
         // Redirection vers une autre page après l'insertion
-        header("Location: pay.php");
-        exit();
+        // header("Location: pay.php");
+        // exit();
     } catch (mysqli_sql_exception  $e) {
         // Gérez les erreurs de base de données ici
         $errorMessage = "Erreur de base de données : " . $e->getMessage();
     }
 }
 ?>
+
 
 
 
