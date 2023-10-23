@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send'])) {
             $lnbits_invoice = json_decode($result, true);
             // Redirigez l'utilisateur vers la page de paiement LNbits avec la nouvelle facture
             $payment_request = $lnbits_invoice['payment_request']; // ou 'payment_hash' selon la réponse
-            header("Location: pay.php?payment_request=" . $payment_request);
+            header("Location: momopay.php");
             exit();
         } else {
             // Gérez les erreurs de requête
@@ -141,6 +141,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send'])) {
                     <li>
                         <a href="signup.php" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50">Get started</a>
                     </li>
+                    <li>
+                        <a href="logout.php" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50">Log out</a>
+                    </li>
                 </ul>
             </div>
         </nav>
@@ -179,15 +182,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send'])) {
                 </div>
             </div>
             <div class="flex flex-wrap -mx-3 mb-6">
-                <div class="w-full md:w-1/2 px-3">
+            <div class="w-full md:w-1/2 px-3">
                     <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="network">
-                        Select Network
+                        Select Chain
                     </label>
                     <select name="network" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-2 px-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" required>
-                        <option value="" disabled selected>Select Network</option>
-                        <option value="mtn">MTN</option>
-                        <option value="moov">MOOV</option>
-                        <option value="celtis">CELTIS</option>
+                        <option value="" disabled selected>Select Chain</option>
+                        <option value="ln">LN</option>
+                        <option value="moov">BTC</option>
                         <!-- Ajoutez d'autres options comme nécessaire -->
                     </select>
                 </div>

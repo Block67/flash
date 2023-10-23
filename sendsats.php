@@ -1,9 +1,12 @@
 <?php
+session_start();
 include('connect.php');
 $successMessage = $errorMessage = ''; // Initialisation des messages
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send'])) {
     try {
+
+        $user_id = $_SESSION['user_id']; 
         $from_country = htmlspecialchars($_POST['from_country']);
         $to_country = htmlspecialchars($_POST['to_country']);
         $selected_network = htmlspecialchars($_POST['selected_network']);
@@ -12,20 +15,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send'])) {
         $amount_xof = htmlspecialchars($_POST['amount_xof']);
 
         // Préparez votre requête SQL d'insertion avec le statut
-        $sql = "INSERT INTO sendsats (from_country, to_country, selected_network, number, amount_sat, amount_xof) VALUES (?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO sendsats (user_id,from_country, to_country, selected_network, number, amount_sat, amount_xof) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         // Préparez les valeurs à insérer
         $stmt = $mysqli->prepare($sql);
-        $stmt->bind_param('ssssss', $from_country, $to_country, $selected_network, $number, $amount_sat, $amount_xof);
+        $stmt->bind_param('sssssss', $user_id, $from_country, $to_country, $selected_network, $number, $amount_sat, $amount_xof);
         $stmt->execute();
 
-
-        // Ajoutez la logique de la requête cURL ici
 
         $lnbits_url = "https://legend.lnbits.com/api/v1/payments";
         $lnbits_api_key = "2b11ca52df474d5dae31c0c977e2a7cf";
 
-        $invoice_amount = $amount_sat; // Utilisez le montant de satoshis calculé précédemment
+        $invoice_amount = $amount_sat;
         $invoice_description = "send_sats_with_flash";
 
         $data = array(
@@ -49,15 +50,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send'])) {
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        // Traitez le résultat de la requête
         if ($httpcode === 201) {
             $lnbits_invoice = json_decode($result, true);
-            // Redirigez l'utilisateur vers la page de paiement LNbits avec la nouvelle facture
+            // Redirigez l'utilisateur vers la page de paiement pay.php avec la nouvelle facture
             $payment_request = $lnbits_invoice['payment_request']; // ou 'payment_hash' selon la réponse
             header("Location: pay.php?payment_request=" . $payment_request);
             exit();
         } else {
-            // Gérez les erreurs de requête
+            // Gestion des erreurs de requête
             $errorMessage = "Erreur lors de la création de la facture LNbits.";
         }
 
